@@ -1,5 +1,6 @@
 // src/App.jsx
 import React, { useState } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import ModeSelect from './components/modeSelect';
 import InputForm from './components/inputForm';
 import VibeResult from './components/vibeResults';
