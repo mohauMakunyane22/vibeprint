@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ModeSelect from './components/modeSelect';
@@ -12,30 +11,6 @@ const App = () => {
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for demonstration - replace with actual API calls
-  const mockResults = {
-    individual: {
-      summary: "You're a creative soul with eclectic tastes. You appreciate authenticity and seek experiences that feel genuine and artisanal. Your vibe blends vintage charm with modern sensibilities.",
-      traits: ["Creative", "Authentic", "Eclectic", "Mindful", "Artistic", "Independent"],
-      recommendations: [
-        { name: "Local Coffee Roastery", description: "Perfect for your artisanal coffee appreciation" },
-        { name: "Vintage Boutique", description: "Unique finds that match your style" },
-        { name: "Indie Music Venue", description: "Intimate concerts with emerging artists" },
-        { name: "Farm-to-Table Restaurant", description: "Sustainable dining experience" }
-      ]
-    },
-    brand: {
-      summary: "Your brand embodies modern sophistication with a conscious edge. You appeal to discerning consumers who value quality, sustainability, and authentic storytelling in their purchasing decisions.",
-      traits: ["Sustainable", "Premium", "Authentic", "Innovative", "Conscious", "Sophisticated"],
-      recommendations: [
-        { name: "Boutique Hotels", description: "Perfect partnership for conscious travelers" },
-        { name: "Artisan Markets", description: "Showcase your products to target demographic" },
-        { name: "Co-working Spaces", description: "Connect with creative professionals" },
-        { name: "Sustainable Events", description: "Align with environmentally conscious gatherings" }
-      ]
-    }
-  };
-
   const handleModeSelect = (selectedMode) => {
     setMode(selectedMode);
     setCurrentStep('form');
@@ -44,27 +19,68 @@ const App = () => {
   const handleFormSubmit = async (data) => {
     setIsLoading(true);
     setFormData(data);
-    
+
     try {
-      // TODO: Replace with actual API call to your server.cjs
-      // const response = await fetch('/api/analyze-vibe', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ mode, ...data })
-      // });
-      // const result = await response.json();
-      
-      // For now, simulate API call with mock data
-      setTimeout(() => {
-        setResult(mockResults[mode]);
-        setCurrentStep('result');
-        setIsLoading(false);
-      }, 2000);
-      
+      const prompt = generatePrompt(mode, data);
+
+      const response = await fetch('http://localhost:4000/api/generate-vibe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+
+      const resultJson = await response.json();
+      const parsed = parseGeminiOutput(resultJson.text);
+
+      setResult(parsed);
+      setCurrentStep('result');
     } catch (error) {
-      console.error('Error analyzing vibe:', error);
+      console.error('Error generating vibe:', error);
+    } finally {
       setIsLoading(false);
     }
+  };
+
+  const generatePrompt = (mode, data) => {
+    const input = JSON.stringify(data);
+
+    if (mode === 'individual') {
+      return `Act as a vibe analyst. Based on the user's responses below, generate:\n\n1. A short personal vibe summary (2–3 sentences)\n2. A list of 6 descriptive personality traits\n3. A list of 4 personalized lifestyle recommendations (with name and a short description each)\n\nResponses: ${input}`;
+    } else {
+      return `Act as a brand consultant. Based on the brand input below, generate:\n\n1. A short brand vibe summary (2–3 sentences)\n2. 6 key brand traits\n3. 4 relevant venues or partnerships (name and short description)\n4. Key marketing insights for the brand\n\nInput: ${input}`;
+    }
+  };
+
+  const parseGeminiOutput = (text) => {
+    const summaryMatch = text.match(/(?:Brand Vibe|Summary):([\s\S]*?)(?:Traits:|Six Brand Traits:)/i);
+    const traitsMatch = text.match(/(?:Traits|Six Brand Traits):([\s\S]*?)(?:Recommendations:|Four Relevant Recommendation Venues:)/i);
+    const recsMatch = text.match(/(?:Recommendations|Four Relevant Recommendation Venues):([\s\S]*?)(?:Marketing Insights:|$)/i);
+    const insightsMatch = text.match(/Marketing Insights:([\s\S]*)/i);
+
+    const traits = traitsMatch?.[1]
+      ?.split(/\n|[,•\-]/)
+      .map(str => str.trim())
+      .filter(str => str.length > 0);
+
+    const recommendations = recsMatch?.[1]
+      ?.split(/\n(?=\d+\.)/)
+      .map(line => {
+        const [name, ...desc] = line.split(/[:-]/);
+        return {
+          name: name?.replace(/^\d+\.\s*/, '').trim(),
+          description: desc.join(':').trim()
+        };
+      }) || [];
+
+    return {
+      summary: summaryMatch?.[1]?.trim() || '',
+      traits: traits || [],
+      recommendations: recommendations,
+      marketingInsights: insightsMatch?.[1]
+        ?.split('\n')
+        .map(i => i.replace(/^[-•\d.]\s*/, '').trim())
+        .filter(Boolean) || []
+    };
   };
 
   const handleBack = () => {
@@ -85,22 +101,20 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-vh-100 p-3">
       {currentStep === 'mode' && (
         <ModeSelect onSelect={handleModeSelect} />
       )}
-      
       {currentStep === 'form' && (
-        <InputForm 
-          mode={mode} 
+        <InputForm
+          mode={mode}
           onSubmit={handleFormSubmit}
           onBack={handleBack}
           isLoading={isLoading}
         />
       )}
-      
       {currentStep === 'result' && (
-        <VibeResult 
+        <VibeResult
           mode={mode}
           result={result}
           onBack={handleBack}

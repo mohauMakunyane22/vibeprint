@@ -17,7 +17,6 @@ app.get("/", (req, res) => {
   res.json({ status: "Server is running!", timestamp: new Date().toISOString() });
 });
 
-// Vibe Generator Endpoint
 app.post("/api/generate-vibe", async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -28,7 +27,7 @@ app.post("/api/generate-vibe", async (req, res) => {
 
     console.log("Generating vibe for prompt:", prompt.substring(0, 50) + "...");
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
