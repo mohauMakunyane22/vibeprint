@@ -1,16 +1,16 @@
 import React from 'react';
 import { Card, Button, Container, Row, Col, Badge } from 'react-bootstrap';
+import GoogleMapEmbed from './GoogleMapsEmbed';
 
-const MAPS_API_KEY = meta.env.GOOGLE_MAPS_API_KEY;
-
-const VibeResult = ({ mode, result, onBack, onRestart }) => {
+const VibeResult = ({ mode, result, onBack, onRestart, formData }) => {
   if (!result) return null;
 
   const { summary, traits, recommendations, marketingInsights } = result;
+  const userCity = formData?.location || '';
 
   const pastelColors = [
-    '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9', '#BAE1FF', '#E6CCFF',
-    '#D9F2FF', '#FFF0F5', '#FCE8D5', '#D5F0E8', '#F0D5E8'
+    '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
+    '#BAE1FF', '#E6CCFF', '#FCE8D5', '#D5F0E8'
   ];
 
   return (
@@ -66,13 +66,12 @@ const VibeResult = ({ mode, result, onBack, onRestart }) => {
             </Card.Title>
             <ul className="list-unstyled">
               {recommendations.map((rec, idx) => (
-                <li key={idx} className="mb-3">
-                  <Card className="border-0" style={{ backgroundColor: '#ffffffcc' }}>
-                    <Card.Body>
-                      <h6 className="fw-bold text-info mb-1">{rec.name}</h6>
-                      <p className="mb-0 text-muted">{rec.description}</p>
-                    </Card.Body>
-                  </Card>
+                <li key={idx} className="mb-4">
+                  <div className="p-3 border rounded bg-light">
+                    <h6 className="mb-2 fw-bold">{rec.name}</h6>
+                    <p className="mb-3">{rec.description}</p>
+                    <GoogleMapEmbed location={`${rec.name}, ${userCity}`} />
+                  </div>
                 </li>
               ))}
             </ul>

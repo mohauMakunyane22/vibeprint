@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ModeSelect from './components/modeSelect';
@@ -123,6 +122,7 @@ Input: ${input}`;
         <VibeResult
           mode={mode}
           result={result}
+          formData={formData}
           onBack={handleBack}
           onRestart={handleRestart}
         />

@@ -12,6 +12,7 @@
   "dependencies": {
     "20": "^1.0.0",
     "@google/generative-ai": "^0.24.1",
+    "@react-google-maps/api": "^2.20.7",
     "bootstrap": "^5.3.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
