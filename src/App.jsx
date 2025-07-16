@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ModeSelect from './components/modeSelect';
@@ -5,8 +6,8 @@ import InputForm from './components/inputForm';
 import VibeResult from './components/vibeResults';
 
 const App = () => {
-  const [currentStep, setCurrentStep] = useState('mode'); // 'mode', 'form', 'result'
-  const [mode, setMode] = useState(null); // 'individual' or 'brand'
+  const [currentStep, setCurrentStep] = useState('mode');
+  const [mode, setMode] = useState(null);
   const [formData, setFormData] = useState(null);
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,42 +46,49 @@ const App = () => {
     const input = JSON.stringify(data);
 
     if (mode === 'individual') {
-      return `Act as a vibe analyst. Based on the user's responses below, generate:\n\n1. A short personal vibe summary (2–3 sentences)\n2. A list of 6 descriptive personality traits\n3. A list of 4 personalized lifestyle recommendations (with name and a short description each)\n\nResponses: ${input}`;
+      return `Act as a vibe analyst. Based on the user's preferences below, generate:
+1. A short vibe summary (2–3 sentences, no markdown or headings).
+2. A list of exactly 6 short personality traits (1–2 word phrases, no bullets).
+3. A list of 4 real and existing local places in the user's city. Return each as a bullet point (start with a dash), with this format:
+
+- Place Name (City): one sentence description.
+
+Do not invent venues. If unsure a place exists, skip it.
+
+User Input: ${input}`;
     } else {
-      return `Act as a brand consultant. Based on the brand input below, generate:\n\n1. A short brand vibe summary (2–3 sentences)\n2. 6 key brand traits\n3. 4 relevant venues or partnerships (name and short description)\n4. Key marketing insights for the brand\n\nInput: ${input}`;
+      return `Act as a brand consultant. Based on the brand input below, generate:
+1. A short brand vibe summary (2–3 sentences).
+2. 6 key brand traits (1–2 word phrases).
+3. 4 real venues or partnership ideas in their city (bullet list with name and 1-line description).
+4. Key marketing insights for the brand.
+
+Input: ${input}`;
     }
   };
 
   const parseGeminiOutput = (text) => {
-    const summaryMatch = text.match(/(?:Brand Vibe|Summary):([\s\S]*?)(?:Traits:|Six Brand Traits:)/i);
-    const traitsMatch = text.match(/(?:Traits|Six Brand Traits):([\s\S]*?)(?:Recommendations:|Four Relevant Recommendation Venues:)/i);
-    const recsMatch = text.match(/(?:Recommendations|Four Relevant Recommendation Venues):([\s\S]*?)(?:Marketing Insights:|$)/i);
-    const insightsMatch = text.match(/Marketing Insights:([\s\S]*)/i);
+    const parts = text.split(/\n{2,}/);
 
-    const traits = traitsMatch?.[1]
-      ?.split(/\n|[,•\-]/)
-      .map(str => str.trim())
-      .filter(str => str.length > 0);
+    const summary = parts[0]?.trim();
 
-    const recommendations = recsMatch?.[1]
-      ?.split(/\n(?=\d+\.)/)
-      .map(line => {
-        const [name, ...desc] = line.split(/[:-]/);
-        return {
-          name: name?.replace(/^\d+\.\s*/, '').trim(),
-          description: desc.join(':').trim()
-        };
-      }) || [];
+    const traits = parts[1]
+      .split(/[,;\n]/)
+      .map(t => t.trim())
+      .filter(t => t);
 
-    return {
-      summary: summaryMatch?.[1]?.trim() || '',
-      traits: traits || [],
-      recommendations: recommendations,
-      marketingInsights: insightsMatch?.[1]
-        ?.split('\n')
-        .map(i => i.replace(/^[-•\d.]\s*/, '').trim())
-        .filter(Boolean) || []
-    };
+    const recsRaw = parts[2]?.split(/\n/).filter(line => /^[-–\d]/.test(line)) || [];
+    const recommendations = recsRaw.map(line => {
+      const clean = line.replace(/^[-–]\s*/, '').trim();
+      const [namePart, desc] = clean.split(':').map(s => s.trim());
+      return { name: namePart, description: desc };
+    });
+
+    const marketingInsights = parts[3]
+      ? parts[3].split(/\n/).map(l => l.replace(/^[-•\d]\s*/, '').trim()).filter(Boolean)
+      : [];
+
+    return { summary, traits, recommendations, marketingInsights };
   };
 
   const handleBack = () => {
@@ -102,9 +110,7 @@ const App = () => {
 
   return (
     <div className="min-vh-100 p-3">
-      {currentStep === 'mode' && (
-        <ModeSelect onSelect={handleModeSelect} />
-      )}
+      {currentStep === 'mode' && <ModeSelect onSelect={handleModeSelect} />}
       {currentStep === 'form' && (
         <InputForm
           mode={mode}
