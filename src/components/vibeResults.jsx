@@ -1,6 +1,8 @@
 import React from 'react';
 import { Card, Button, Container, Row, Col, Badge } from 'react-bootstrap';
 
+const MAPS_API_KEY = meta.env.GOOGLE_MAPS_API_KEY;
+
 const VibeResult = ({ mode, result, onBack, onRestart }) => {
   if (!result) return null;
 
