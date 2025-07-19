@@ -1,29 +1,38 @@
-import React from 'react';
-import { Card, Button, Container, Row, Col, Badge } from 'react-bootstrap';
-import GoogleMapEmbed from './GoogleMapsEmbed';
+import React from "react";
+import { Card, Button, Container, Row, Col, Badge } from "react-bootstrap";
+import GoogleMapEmbed from "./GoogleMapsEmbed";
+import YoutubeEmbed from "./YoutubeEmbed";
 
 const VibeResult = ({ mode, result, onBack, onRestart, formData }) => {
   if (!result) return null;
 
   const { summary, traits, recommendations, marketingInsights } = result;
-  const userCity = formData?.location || '';
+  const userCity = formData?.location || "";
 
   const pastelColors = [
-    '#FFB3BA', '#FFDFBA', '#FFFFBA', '#BAFFC9',
-    '#BAE1FF', '#E6CCFF', '#FCE8D5', '#D5F0E8'
+    "#FFB3BA",
+    "#FFDFBA",
+    "#FFFFBA",
+    "#BAFFC9",
+    "#BAE1FF",
+    "#E6CCFF",
+    "#FCE8D5",
+    "#D5F0E8",
   ];
 
   return (
     <Container className="py-5 text-center">
       <h2 className="mb-5 fw-bold text-primary">
-        {mode === 'brand' ? 'Brand Vibe Profile' : 'Your Vibe Profile'}
+        {mode === "brand" ? "Brand Vibe Profile" : "Your Vibe Profile"}
       </h2>
 
       {/* Summary */}
       {summary && (
-        <Card className="mb-4 shadow" style={{ backgroundColor: '#fef6e4' }}>
+        <Card className="mb-4 shadow" style={{ backgroundColor: "#fef6e4" }}>
           <Card.Body>
-            <Card.Title className="text-secondary fs-4 mb-3">Summary</Card.Title>
+            <Card.Title className="text-secondary fs-4 mb-3">
+              Summary
+            </Card.Title>
             <p className="lead">{summary}</p>
           </Card.Body>
         </Card>
@@ -31,10 +40,10 @@ const VibeResult = ({ mode, result, onBack, onRestart, formData }) => {
 
       {/* Traits */}
       {traits && traits.length > 0 && (
-        <Card className="mb-4 shadow" style={{ backgroundColor: '#f0f4ff' }}>
+        <Card className="mb-4 shadow" style={{ backgroundColor: "#f0f4ff" }}>
           <Card.Body>
             <Card.Title className="text-secondary fs-4 mb-3">
-              {mode === 'brand' ? 'Brand Traits' : 'Personality Traits'}
+              {mode === "brand" ? "Brand Traits" : "Personality Traits"}
             </Card.Title>
             <Row className="justify-content-center g-2">
               {traits.map((trait, idx) => (
@@ -43,9 +52,9 @@ const VibeResult = ({ mode, result, onBack, onRestart, formData }) => {
                     pill
                     style={{
                       backgroundColor: pastelColors[idx % pastelColors.length],
-                      color: '#333',
-                      padding: '0.6em 1em',
-                      fontSize: '0.95rem',
+                      color: "#333",
+                      padding: "0.6em 1em",
+                      fontSize: "0.95rem",
                     }}
                   >
                     {trait}
@@ -59,10 +68,12 @@ const VibeResult = ({ mode, result, onBack, onRestart, formData }) => {
 
       {/* Recommendations */}
       {recommendations && recommendations.length > 0 && (
-        <Card className="mb-4 shadow" style={{ backgroundColor: '#e8fff4' }}>
+        <Card className="mb-4 shadow" style={{ backgroundColor: "#e8fff4" }}>
           <Card.Body>
             <Card.Title className="text-secondary fs-4 mb-3">
-              {mode === 'brand' ? 'Venues & Partnerships' : 'Lifestyle Recommendations'}
+              {mode === "brand"
+                ? "Venues & Partnerships"
+                : "Lifestyle Recommendations"}
             </Card.Title>
             <ul className="list-unstyled">
               {recommendations.map((rec, idx) => (
@@ -80,18 +91,45 @@ const VibeResult = ({ mode, result, onBack, onRestart, formData }) => {
       )}
 
       {/* Marketing Insights */}
-      {mode === 'brand' && marketingInsights && marketingInsights.length > 0 && (
-        <Card className="mb-4 shadow" style={{ backgroundColor: '#f3e8ff' }}>
-          <Card.Body>
-            <Card.Title className="text-secondary fs-4 mb-3">Marketing Insights</Card.Title>
-            <ul className="text-start">
-              {marketingInsights.map((insight, idx) => (
-                <li key={idx} className="mb-1">{insight}</li>
-              ))}
-            </ul>
-          </Card.Body>
-        </Card>
-      )}
+      {mode === "brand" &&
+        marketingInsights &&
+        marketingInsights.length > 0 && (
+          <Card className="mb-4 shadow" style={{ backgroundColor: "#f3e8ff" }}>
+            <Card.Body>
+              <Card.Title className="text-secondary fs-4 mb-3">
+                Marketing Insights
+              </Card.Title>
+              <ul className="text-start">
+                {marketingInsights.map((insight, idx) => (
+                  <li key={idx} className="mb-1">
+                    {insight}
+                  </li>
+                ))}
+              </ul>
+            </Card.Body>
+          </Card>
+        )}
+
+      {/* Music Artists */}
+      {mode === "individual" &&
+        result.musicArtists &&
+        result.musicArtists.length > 0 && (
+          <Card className="mb-4 shadow" style={{ backgroundColor: "#fffbe6" }}>
+            <Card.Body>
+              <Card.Title className="text-secondary fs-4 mb-3">
+                Music Recommendations
+              </Card.Title>
+              <Row className="justify-content-center">
+                {result.musicArtists.map((artist, idx) => (
+                  <Col xs={12} md={6} lg={4} key={idx} className="mb-3">
+                    <h6 className="fw-bold mb-2">{artist}</h6>
+                    <YoutubeEmbed query={artist + " artist profile"} />
+                  </Col>
+                ))}
+              </Row>
+            </Card.Body>
+          </Card>
+        )}
 
       {/* Navigation Buttons */}
       <Row className="mt-5 justify-content-center">
